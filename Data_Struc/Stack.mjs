@@ -13,18 +13,14 @@ class Stack {
     this.list = new LinkedList();
   }
 
-  // 삽입
   push(data) {
     this.list.insertAt(0, data);
   }
 
-  // 제거
   pop() {
     try {
-      // 제거된 노드 반환
       return this.list.deleteAt(0);
     } catch (e) {
-      // 빈 리스트를 지웠을 때 예외처리
       return null;
     }
   }
@@ -34,7 +30,8 @@ class Stack {
   }
 
   isEmpty() {
-    return this.list.count === 0;
+    return this.list.count == 0;
   }
 }
+
 export { Stack };
