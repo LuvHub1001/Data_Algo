@@ -49,6 +49,18 @@ class BinaryTree {
     this.postOrderTraversal(tree.getRightSubTree());
     console.log(tree.data);
   }
+
+  removeLeftSubTree() {
+    let deletedNode = this.getLeftSubTree();
+    this.setLeftSubTree(null);
+    return deletedNode;
+  }
+
+  removeRightSubTree() {
+    let deletedNode = this.getRightSubTree();
+    this.setRightSubTree(null);
+    return deletedNode;
+  }
 }
 
 export { BinaryTree };
