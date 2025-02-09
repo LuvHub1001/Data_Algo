@@ -144,6 +144,39 @@ class AVLTree {
 
     return unBalanceeNode;
   }
+
+  /**
+   * targetRootNode: 데이터를 삽입할 루트 노드
+   * data: 삽입할 데이터
+   */
+  insert(targetRootNode, data) {
+    // 기저 조건(삽입하려는 노드가 null == 최초에 삽입 or 터미널 노드에 삽입)
+    if (targetRootNode === null) {
+      targetRootNode = new AVL_BinaryTree(data);
+    }
+
+    // 트리에 처음 데이터 삽입하는 경우
+    if (this.root === null) {
+      this.root = targetRootNode;
+    }
+    // 중복 데이터 삽입하는 경우
+    else if (targetRootNode.getData() === data) return targetRootNode;
+    else if (targetRootNode.getData() > data) {
+      // (5, 3) 1을 삽입하는 경우
+      targetRootNode.setLeftSubTree(
+        this.insert(targetRootNode.getLeftSubTree(), data)
+      );
+    } else if (targetRootNode.getData() < data) {
+      targetRootNode.setRightSubTree(
+        this.insert(targetRootNode.getRightSubTree(), data)
+      );
+    }
+
+    this.updateHeight(targetRootNode);
+    targetRootNode = this.rotation(targetRootNode, data);
+
+    return targetRootNode;
+  }
 }
 
 export { AVLTree };
