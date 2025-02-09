@@ -79,7 +79,7 @@ class BinarySearchTree {
 
       parentNode.getLeftSubTree() === deletedNode
         ? parentNode.setLeftSubTree(deletedChildNode)
-        : parentNode.getRightSubTree(deletedChildNode);
+        : parentNode.setRightSubTree(deletedChildNode);
     } else {
       let replacingNode = deletedNode.getLeftSubTree();
       let replacingParentNode = deletedNode;
