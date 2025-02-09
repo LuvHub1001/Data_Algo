@@ -1,4 +1,4 @@
-import { AVL_BinaryTree } from "./BinaryTree.mjs";
+import { AVL_BinaryTree } from "./AVL_BinaryTree.mjs";
 
 /**
 추상 자료형
@@ -118,37 +118,39 @@ class AVLTree {
     return targetNode;
   }
 
-  getUnBalanceNode(targetRootNode, unBalanceeNode = null) {
+  getUnBalanceNode(targetRootNode, unBalanceNode = null) {
     if (
       targetRootNode.getLeftSubTree() === null &&
       targetRootNode.getRightSubTree() === null
     ) {
-      unBalanceeNode = targetRootNode;
-      return unBalanceeNode;
+      unBalanceNode = targetRootNode;
+      return unBalanceNode;
     }
 
     let balanceFactor = this.getBalanceFactor(targetRootNode);
     if (balanceFactor > 0) {
-      unBalanceeNode = this.getUnBalanceNode(
+      unBalanceNode = this.getUnBalanceNode(
         targetRootNode.getLeftSubTree(),
-        unBalanceeNode
+        unBalanceNode
       );
     } else if (balanceFactor < 0) {
-      unBalanceeNode = this.getUnBalanceNode(
-        (targetRootNode = getRightSubTree()),
-        unBalanceeNode
+      unBalanceNode = this.getUnBalanceNode(
+        targetRootNode.getRightSubTree(),
+        unBalanceNode
       );
     } else {
-      unBalanceeNode = targetRootNode.getRightSubTree();
+      unBalanceNode = targetRootNode.getRightSubTree();
     }
 
-    return unBalanceeNode;
+    return unBalanceNode;
   }
 
   /**
    * targetRootNode: 데이터를 삽입할 루트 노드
    * data: 삽입할 데이터
    */
+
+  // (5, 3) 1을 삽입하는 경우
   insert(targetRootNode, data) {
     // 기저 조건(삽입하려는 노드가 null == 최초에 삽입 or 터미널 노드에 삽입)
     if (targetRootNode === null) {
@@ -162,7 +164,6 @@ class AVLTree {
     // 중복 데이터 삽입하는 경우
     else if (targetRootNode.getData() === data) return targetRootNode;
     else if (targetRootNode.getData() > data) {
-      // (5, 3) 1을 삽입하는 경우
       targetRootNode.setLeftSubTree(
         this.insert(targetRootNode.getLeftSubTree(), data)
       );
@@ -176,6 +177,100 @@ class AVLTree {
     targetRootNode = this.rotation(targetRootNode, data);
 
     return targetRootNode;
+  }
+
+  // (5,3) 4를 삭제하는 경우우
+  remove(targetRootNode, data, parentNode = null) {
+    // 삭제할 노드가 왼쪽 자식노드에 있을 때
+    if (
+      targetRootNode.getData() > data &&
+      targetRootNode.getLeftSubTree() !== null
+    ) {
+      targetRootNode.setLeftSubTree(
+        this.remove(targetRootNode.getLeftSubTree(), data, targetRootNode)
+      );
+    } else if (
+      targetRootNode.getData() < data &&
+      targetRootNode.getRightSubTree() !== null
+    ) {
+      // 삭제할 노드가 오른쪽 자식노드에 있을 때
+      targetRootNode.setRightSubTree(
+        this.remove(targetRootNode.getRightSubTree(), data, targetRootNode)
+      );
+    } else if (targetRootNode.getData() === data) {
+      targetRootNode = this.removeHelper(targetRootNode, parentNode);
+
+      if (parentNode === null && targetRootNode !== null) {
+        this.updateHeight(targetRootNode);
+        let unBalanceNode = this.getUnBalanceNode(targetRootNode);
+
+        targetRootNode = this.rotation(targetRootNode, unBalanceNode.getData());
+      }
+
+      return targetRootNode;
+    }
+
+    this.updateHeight(targetRootNode);
+
+    // insert에서는 삽입하는 노드가 균형을 무너트리므로 신경 안써도 됐지만
+    // remove에서는 어떤 노드가 제거됐을 때 균형이 무너지는지 알아야하므로 구해야함
+    let unBalanceNode = this.getUnBalanceNode(targetRootNode);
+    targetRootNode = this.rotation(targetRootNode, unBalanceNode.getData());
+    return targetRootNode;
+  }
+
+  // removeHelper(): 해당 노드 삭제하고, 대체되는 노드(== 자식 노드) 리턴하는 함수
+  removeHelper(deletedNode, parentNode) {
+    let fakeRootParentNode = new AVL_BinaryTree(0);
+    fakeRootParentNode.setRightSubTree(this.root);
+
+    if (parentNode == null) {
+      parentNode = fakeRootParentNode;
+    }
+
+    let deletedChildNode = null;
+
+    if (
+      deletedNode.getLeftSubTree() === null &&
+      deletedNode.getRightSubTree() === null
+    ) {
+      parentNode.getLeftSubTree() === deletedNode
+        ? parentNode.removeLeftSubTree()
+        : parentNode.removeRightSubTree();
+    } else if (
+      deletedNode.getLeftSubTree() === null ||
+      deletedNode.getRightSubTree() === null
+    ) {
+      deletedChildNode =
+        deletedNode.getLeftSubTree() !== null
+          ? deletedNode.getLeftSubTree()
+          : deletedNode.getRightSubTree();
+
+      parentNode.getLeftSubTree() === deletedNode
+        ? parentNode.setLeftSubTree(deletedChildNode)
+        : parentNode.setRightSubTree(deletedChildNode);
+    } else {
+      let replacingNode = deletedNode.getLeftSubTree();
+      let replacingParentNode = deletedNode;
+
+      while (replacingNode.getRightSubTree() !== null) {
+        replacingParentNode = replacingNode;
+        replacingNode = replacingNode.getRightSubTree();
+      }
+
+      deletedNode.setData(replacingNode.getData());
+
+      replacingParentNode.getLeftSubTree() === replacingNode
+        ? replacingParentNode.setLeftSubTree(replacingNode.getLeftSubTree())
+        : replacingParentNode.setRightSubTree(replacingNode.getLeftSubTree());
+
+      deletedChildNode = deletedNode;
+    }
+
+    if (fakeRootParentNode.getRightSubTree() !== this.root)
+      this.root = fakeRootParentNode.getRightSubTree();
+
+    return deletedChildNode;
   }
 }
 
