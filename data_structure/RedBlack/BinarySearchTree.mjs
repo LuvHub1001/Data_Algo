@@ -16,7 +16,7 @@ class BinarySearchTree {
 
     while (currentNode !== null) {
       parentNode = currentNode;
-      if (currentNode.getData() === data) return currentNode;
+      if (currentNode.getData() === data) return;
       else if (currentNode.getData() > data)
         currentNode = currentNode.getLeftSubTree();
       else currentNode = currentNode.getRightSubTree();
