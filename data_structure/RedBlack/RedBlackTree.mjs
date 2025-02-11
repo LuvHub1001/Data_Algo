@@ -92,6 +92,123 @@ class RedBlackTree {
       newChild.setParent(parent);
     }
   }
+
+  // 1 2 3 트리에서 5를 삽입한다고 가정
+  insert(data) {
+    // 이진탐색트리와 똑같이 수행하고 마지막에 균형 잡아주는 rebalanceAfterInsertion()만 호출해주면 됨
+    let currentNode = this.root;
+    let parent = null;
+
+    while (currentNode !== null) {
+      parent = currentNode;
+      if (currentNode.getData() === data) return;
+      else if (currentNode.getData() > data)
+        currentNode = currentNode.getLeftSubTree();
+      else currentNode = currentNode.getRightSubTree();
+    }
+
+    let newNode = new RedBlack_BinaryTree(data);
+    if (parent === null) {
+      this.root = newNode;
+    } else if (parent.getData() > data) {
+      parent.setLeftSubTree(newNode);
+    } else {
+      parent.setRightSubTree(newNode);
+    }
+
+    newNode.setParent(parent);
+    this.rebalanceAfterInsertion(newNode);
+  }
+
+  // node 매개변수는 새로 삽입된 노드
+  rebalanceAfterInsertion(node) {
+    /**
+     * 1. 새로운 노드가 루트노드인 경우
+     * 2. 부모노드와 삼촌노드가 빨간색인 경우
+     * 3. 부모노드는 빨간색이고, 삼촌노드는 검은색, 새로운 노드는 안쪽 손자인 경우
+     * 4. 부모노드는 빨간색이고, 삼촌노드는 검은색, 새로운 노드는 바깥쪽 손자인 경우
+     */
+
+    let parent = node.getParent();
+
+    if (parent === null) {
+      node.color = BLACK;
+      return;
+    }
+
+    if (parent.color === BLACK) return; // 부모노드가 빨간색이면 return 되니까 밑에서부터는 parent.color 검사 안해도 됨
+
+    let uncle = this.getUncle(parent);
+    let grandParent = parent.getParent();
+
+    // 2번 상황 >> 부모노드와 삼촌노드를 검은색으로 변경
+    if (uncle !== null && uncle.color === RED) {
+      parent.color = BLACK;
+      uncle.color = BLACK;
+      grandParent.color = RED;
+      this.rebalanceAfterInsertion(grandParent);
+    }
+
+    // 3번 상황 >> 부모노드 삽입된 데이터 반대 방향 회전 -> 할아버지 노드를 부모노드 회전한 반대 방향으로 회전 -> 새로 삽입된 노드를 검은색으로 -> 할아버지 노드를 빨간색으로
+    else if (this.isBlack(uncle) === true) {
+      // 오른쪽 안쪽 손자
+      if (
+        grandParent.getRightSubTree() === parent &&
+        parent.getLeftSubTree() === node
+      ) {
+        // 부모노드를 삽입된 데이터의 반대 방향으로 회전한다. (3-5), 4 삽입 가정
+        this.rotateRight(parent);
+        // 할아버지 노드를 부모 노드가 회전한 반대 방향으로 회전
+        this.rotateLeft(grandParent);
+        node.color = BLACK;
+        grandParent.color = RED;
+      } else if (
+        grandParent.getLeftSubTree() === parent &&
+        parent.getRightSubTree() === node
+      ) {
+        // 왼쪽 안쪽 손자
+        this.rotateLeft(parent);
+        this.rotateRight(grandParent);
+        node.color = BLACK;
+        grandParent.color = RED;
+      }
+      // 4번 상황 (5-7),9 삽입 가정 > 할아버지 노드를 새로운 노드 삽입된 반대 방향으로 회전 > 부모노드를 검은색, 할아버지 노드를 빨간색으로 변경
+      else if (
+        grandParent.getRightSubTree() === parent &&
+        parent.getRightSubTree() === node
+      ) {
+        // 할아버지 노드를 새로운 노드 삽입된 반대 방향으로 회전
+        this.rotateLeft(grandParent);
+        // 부모노드의 색을 검은색으로, 할아버지 노드의 색을 빨간색으로 변경
+        parent.color = BLACK;
+        grandParent.color = RED;
+      } else if (
+        grandParent.getLeftSubTree() === parent &&
+        parent.getLeftSubTree() === node
+      ) {
+        // 왼쪽 바깥쪽 손자 (5-3),1 삽입
+        this.rotateRight(grandParent);
+        parent.color = BLACK;
+        grandParent.color = RED;
+      }
+    }
+  }
+
+  // 1 3 5 7 형태 트리
+  getUncle(parent) {
+    let grandParent = parent.getParent();
+    if (grandParent.getLeftSubTree() === parent) {
+      return grandParent.getRightSubTree();
+    } else if (grandParent.getRightSubTree() === parent) {
+      return grandParent.getLeftSubTree();
+    }
+
+    return null;
+  }
+
+  isBlack(node) {
+    return node === null || node.color === BLACK;
+  }
 }
 
 class NilNode extends RedBlack_BinaryTree {
