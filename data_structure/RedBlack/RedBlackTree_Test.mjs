@@ -7,6 +7,10 @@ rbTree.insert(19);
 rbTree.insert(75);
 rbTree.insert(85);
 
+rbTree.remove(19);
+rbTree.remove(75);
+rbTree.remove(85);
+
 console.log(rbTree.root);
 
 if (rbTree.root) {

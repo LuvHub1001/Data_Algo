@@ -209,6 +209,180 @@ class RedBlackTree {
   isBlack(node) {
     return node === null || node.color === BLACK;
   }
+
+  remove(data) {
+    let currentNode = this.root;
+    while (currentNode != null && currentNode.getData() != data) {
+      if (currentNode.getData() > data)
+        currentNode = currentNode.getLeftSubTree();
+      else if (currentNode.getData() < data)
+        currentNode = currentNode.getRightSubTree();
+    }
+
+    if (currentNode === null) return;
+
+    // 대체할 노드
+    let replacingNode = null;
+
+    // 삭제된 노드의 색깔
+    let deletedNodeColor = RED;
+
+    // 제거할 노드의 자식노드가 1개 이하
+    if (
+      currentNode.getLeftSubTree() === null ||
+      currentNode.getRightSubTree() === null
+    ) {
+      replacingNode = this.removeWithZeroOrOneChild(currentNode);
+      deletedNodeColor = currentNode.color;
+    } else {
+      // 제거할 노드의 자식노드가 2개 (3-5-7-8-10) 8 제거 가정
+      let succesor = this.getBiggestNode(currentNode.getLeftSubTree());
+      currentNode.setData(succesor.getData());
+
+      // 3-5-7-7-10 처럼 됨
+      // (왼쪽 자식 노드 중)가장 큰 노드는 자식 노드가 1개 이하이므로 removeWithZeroOneChild 사용
+      replacingNode = this.removeWithZeroOrOneChild(succesor);
+      deletedNodeColor = currentNode.color;
+    }
+
+    if (deletedNodeColor === BLACK) {
+      this.rebalanceAfterDeletion(replacingNode);
+
+      // 대체된 노드가 닐노드였으면 다시 null로 바꿔줌
+      if (replacingNode instanceof NilNode) {
+        this.replaceParentsChild(
+          replacingNode.getParent(),
+          replacingNode,
+          null
+        );
+      }
+    }
+  }
+
+  // 매개변수 node는 대체된 노드를 담고 있음
+  rebalanceAfterDeletion(node) {
+    /**
+     * 1. 형제 노드가 빨간색인 경우
+     * 2. 형제노드와 형제노드의 두 자식노드가 검은색이고, 부모노드는 빨간색인 경우
+     * 3. 형제노드와 형제노드의 두 자식노드, 부모노드가 모두 검은색인 경우
+     * 4. 형제노드가 검은색이고, 형제의 두 자식노드 중 하나라도 빨간색 노드가 있고 "바깥쪽 조카 노드"가 검은색인 경우
+     * 5. 형제노드가 검은색이고, 형제의 두 자식노드 중 하나라도 빨간색 노드가 있고 "바깥쪽 조카 노드"가 빨간색인 경우
+     **/
+
+    if (node === this.root) {
+      node.color == BLACK;
+      return;
+    }
+
+    let parent = node.getParent();
+
+    // 대체할 노드의 형제 노드
+    let sibling = this.getSibling(node);
+
+    if (sibling.color === RED) {
+      this.handleRedSibling(node, sibling);
+      sibling = this.getSibling(node);
+    }
+
+    if (this.isBlack(sibling)) {
+      // 5 - 10 - 12 - 15 - 19 에서 19 제거 가정
+      if (
+        this.isBlack(sibling.getLeftSubTree()) &&
+        this.isBlack(sibling.getRightSubTree())
+      ) {
+        if (parent.color === RED) {
+          sibling.color = RED;
+          parent.color = BLACK;
+        } else {
+          sibling.color = RED;
+          this.rebalanceAfterDeletion(parent);
+        }
+      } else {
+        this.handleBlackSiblingWithAtLeastOneRedChild(node, sibling);
+      }
+    }
+  }
+
+  getSibling(node) {
+    let parent = node.getParent();
+
+    if (node === parent.getLeftSubTree()) {
+      return parent.getRightSubTree();
+    } else if (node === parent.getRightSubTree()) {
+      return parent.getLeftSubTree();
+    }
+  }
+
+  // 매개변수 node: 대체된 노드, sibling: 형제 노드
+  handleRedSibling(node, sibling) {
+    let parent = node.getParent();
+    sibling.color = BLACK;
+    parent.color = RED;
+
+    if (parent.getLeftSubTree() === node) {
+      this.rotateLeft(parent);
+    } else if (parent.getRightSubTree() === node) {
+      this.rotateRight(parent);
+    }
+  }
+
+  // 매개변수 node: 대체된 노드, sibling: 형제 노드
+  handleBlackSiblingWithAtLeastOneRedChild(node, sibling) {
+    let parent = node.getParent();
+    let nodeIsLeftChild = parent.getLeftSubTree() === node;
+
+    if (nodeIsLeftChild === true && this.isBlack(sibling.getRightSubTree())) {
+      sibling.getLeftSubTree().color = BLACK;
+      sibling.color = RED;
+      this.rotateRight(sibling);
+      sibling = parent.getRightSubTree();
+    } else if (
+      nodeIsLeftChild === false &&
+      this.isBlack(sibling.getLeftSubTree())
+    ) {
+      sibling.getRightSubTree().color = BLACK;
+      sibling.color = RED;
+      this.rotateLeft(sibling);
+      sibling = parent.getLeftSubTree();
+    }
+
+    sibling.color = parent.color;
+    parent.color = BLACK;
+    if (nodeIsLeftChild) {
+      sibling.getRightSubTree().color = BLACK;
+      this.rotateLeft(parent);
+    } else {
+      sibling.getLeftSubTree().color = BLACK;
+      this.rotateRight(parent);
+    }
+  }
+
+  // node: 제거할 노드
+  removeWithZeroOrOneChild(node) {
+    let parent = node.getParent();
+
+    if (node.getLeftSubTree() !== null) {
+      // 3-5-8-7 에서 8 제거 한다고 가정
+      this.replaceParentsChild(parent, node, node.getLeftSubTree());
+      return node.getLeftSubTree();
+    } else if (node.getRightSubTree() !== null) {
+      // 3-5-8-10 에서 8 제거 한다고 가정
+      this.replaceParentsChild(parent, node, node.getRightSubTree());
+      return node.getRightSubTree();
+    } else {
+      // 자식 노드 양쪽 다 null (3-5-8 에서 8 제거 한다고 가정)
+      let newChild = node.color === BLACK ? new NilNode() : null;
+      this.replaceParentsChild(parent, node, newChild);
+      return newChild;
+    }
+  }
+
+  getBiggestNode(node) {
+    while (node.getRightSubTree() !== null) {
+      node = node.getRightSubTree();
+    }
+    return node;
+  }
 }
 
 class NilNode extends RedBlack_BinaryTree {
