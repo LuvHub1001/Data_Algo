@@ -107,6 +107,113 @@ class Heap {
   isBigPriority(first, second) {
     return first < second;
   }
+
+  remove() {
+    let deletedNode = null;
+
+    // 데이터가 1개 일 때
+    if (this.lastInsertedNode === this.root) {
+      deletedNode = this.root;
+      this.root = null;
+      this.lastInsertedNode = null;
+      return deletedNode;
+    }
+
+    let prevLastInsertedNode = this.getNewLastInsertedNode(); // 마지막 이전에 삽입된 노드
+
+    // 마지막에 삽입된 노드와 루트 노드 스왑
+    let tempData = this.root.getData();
+    this.root.setData(this.lastInsertedNode.getData());
+    this.lastInsertedNode.setData(tempData);
+
+    // 마지막 삽입된 노드 제거 (부모 노드의 왼쪽 / 오른쪽 자식인지 구분)
+    if (
+      this.lastInsertedNode ===
+      this.lastInsertedNode.getParent().getLeftSubTree()
+    ) {
+      this.lastInsertedNode.getParent().setLeftSubTree(null);
+    } else {
+      this.lastInsertedNode.getParent().setRightSubTree(null);
+    }
+
+    this.lastInsertedNode.setParent(null);
+
+    // 제거된 노드를 마지막에 삽입된 노드로 가리키기
+    deletedNode = this.lastInsertedNode;
+    this.lastInsertedNode = prevLastInsertedNode;
+
+    // 루트노드부터 순회하며 자리 배치
+    let current = this.root;
+    do {
+      // 우선순위가 더 높은 자식노드
+      let higherChild = this.getHigherPriorityChild(
+        current.getLeftSubTree(),
+        current.getRightSubTree()
+      );
+
+      if (higherChild === null) break;
+      else if (
+        this.isBigPriority(current.getData(), higherChild.getData()) === false
+      ) {
+        let tempData = current.getData();
+        current.setData(higherChild.getData());
+        higherChild.setData(tempData);
+        current = higherChild;
+      } else break;
+    } while (
+      current.getLeftSubTree() !== null ||
+      current.getRightSubTree() !== null
+    );
+
+    return deletedNode;
+  }
+
+  getNewLastInsertedNode() {
+    let prevLastInsertedNode = null;
+
+    if (
+      this.lastInsertedNode ===
+      this.lastInsertedNode.getParent().getLeftSubTree()
+    ) {
+      let current = this.lastInsertedNode;
+      let firstLeftSibling = null;
+
+      while (current.getParent().getParent() !== null) {
+        current = current.getParent();
+        firstLeftSibling = this.getLeftSibling(current);
+        if (firstLeftSibling !== null) break;
+      }
+
+      if (firstLeftSibling !== null) {
+        while (firstLeftSibling.getRightSubTree() !== null) {
+          firstLeftSibling = firstLeftSibling.getRightSubTree();
+        }
+        prevLastInsertedNode = firstLeftSibling;
+      } else {
+        current = this.root;
+        while (current.getRightSubTree() !== null) {
+          current = current.getRightSubTree();
+        }
+        prevLastInsertedNode = current;
+      }
+    } else {
+      prevLastInsertedNode = this.lastInsertedNode.getParent().getLeftSubTree();
+    }
+
+    return prevLastInsertedNode;
+  }
+
+  getHigherPriorityChild(left, right) {
+    if (left === null) {
+      return right;
+    } else if (right === null) {
+      return left;
+    } else if (this.isBigPriority(left.getData(), right.getData())) {
+      return left;
+    } else {
+      return right;
+    }
+  }
 }
 
 export { Heap };

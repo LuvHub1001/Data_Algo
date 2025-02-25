@@ -10,3 +10,9 @@ heap.insert(1);
 
 heap.root.inOrderTraversal(heap.root);
 console.log(heap.root.getData());
+
+console.log("======== remove ========");
+console.log(heap.remove());
+console.log(heap.remove());
+console.log(heap.remove());
+console.log(heap.remove());
