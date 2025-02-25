@@ -1,4 +1,4 @@
-import { BinaryTree } from "./BinaryTree.mjs";
+import { Heap_BinaryTree } from "./HeapBinaryTree.mjs";
 
 class Heap {
   constructor() {
@@ -9,13 +9,13 @@ class Heap {
   insert(data) {
     // 최초로 삽입 (== 마지막으로 삽입된 노드가 null을 가르킴)
     if (this.lastInsertedNode === null) {
-      this.lastInsertedNode = new BinaryTree(data);
+      this.lastInsertedNode = new Heap_BinaryTree(data);
       this.root = this.lastInsertedNode;
       return;
     }
 
     let insertingParent = this.getInsertingParent();
-    let newNode = new BinaryTree(data);
+    let newNode = new Heap_BinaryTree(data);
 
     if (insertingParent.getLeftSubTree() === null) {
       insertingParent.setLeftSubTree(newNode);

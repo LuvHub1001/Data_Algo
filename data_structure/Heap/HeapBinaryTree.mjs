@@ -1,4 +1,4 @@
-class BinaryTree {
+class Heap_BinaryTree {
   constructor(data) {
     this.data = data;
     this.leftSubTree = null;
@@ -72,4 +72,4 @@ class BinaryTree {
   }
 }
 
-export { BinaryTree };
+export { Heap_BinaryTree };
