@@ -51,18 +51,21 @@ class BinaryTree {
   }
 
   preOrderTraversal(tree) {
+    if (tree === null) return;
     console.log(tree.data);
     this.preOrderTraversal(tree.getLeftSubTree());
     this.preOrderTraversal(tree.getRightSubTree());
   }
 
   inOrderTraversal(tree) {
+    if (tree === null) return;
     this.inOrderTraversal(tree.getLeftSubTree());
     console.log(tree.data);
     this.inOrderTraversal(tree.getRightSubTree());
   }
 
   postOrderTraversal(tree) {
+    if (tree === null) return;
     this.postOrderTraversal(tree.getLeftSubTree());
     this.postOrderTraversal(tree.getRightSubTree());
     console.log(tree.data);
