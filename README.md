@@ -10,6 +10,8 @@
 9. BinarySearchTree
 10. AVLTree
 11. Red-BlackTree
+12. Heap
+13. PriorityQueue
 
 # Algo
 1. recursion(재귀)
